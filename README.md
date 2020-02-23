@@ -1,7 +1,7 @@
 # RevUC_2020
 Our project for Revolution UC 2020
 
-##Style Guide for C/C++
+## Style Guide for C/C++
 
 **Header Files:** UpperCamelCase
 - ClassName.hpp
