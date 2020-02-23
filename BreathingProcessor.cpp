@@ -48,7 +48,10 @@ bool  BreathingProcessor::Process(Eigen::VectorXcf sweep, ProcessedFrame& outFra
       std::min(peakLocInt+50, (int)sweep.size()-1)));
   std::complex<float> peak = peakSlice.mean();
 
-  Eigen::VectorXcf delta = sweep * lastSweep.adjoint();
+  Eigen::VectorXcf lastSweepAdjoint = lastSweep.conjugate();
+  std::cout << sweep << '\n';
+  std::cout << lastSweepAdjoint << '\n';
+  Eigen::VectorXcf delta = sweep * lastSweepAdjoint;
 
   Eigen::VectorXf phaseWeights = delta.imag();
   if (secondSweep) {
@@ -110,11 +113,11 @@ float BreathingProcessor::GetEnvAlpha(){
 int main() {
   int sweep_len = 5;
   Eigen::VectorXcf sweep(sweep_len);
-  sweep << std::complex<float>(0,0),
-           std::complex<float>(1,1),
-           std::complex<float>(2,2),
-           std::complex<float>(3,3),
-           std::complex<float>(4,4);
+  sweep << std::complex<float>(10,0),
+           std::complex<float>(11,1),
+           std::complex<float>(12,2),
+           std::complex<float>(13,3),
+           std::complex<float>(14,4);
   ProcessedFrame frame;
   BreathingProcessor bp(sweep_len);
   bp.Process(sweep, frame);
