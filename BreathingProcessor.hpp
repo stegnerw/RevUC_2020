@@ -10,8 +10,8 @@
 class BreathingProcessor {
   public:
     // Public functions
-    BreathingProcessor();
-    bool  Process(std::vector<float>, ProcessedFrame&);
+    BreathingProcessor(int);
+    bool  Process(Eigen::VectorXcf, ProcessedFrame&);
     // Setters and Getters
     void  SetSweepAlpha(float);
     float GetSweepAlpha();
@@ -24,20 +24,22 @@ class BreathingProcessor {
 
   private:
     // Private functions
-    void  ComplexMatrixLPF(Eigen::VectorXcf&, Eigen::VectorXcf&, float);
-    void  FloatMatrixLPF(Eigen::VectorXf&, Eigen::VectorXf&, float);
-    void  FloatLPF(float&, float&, float);
+    void  ComplexMatrixLPF(Eigen::VectorXcf&, Eigen::VectorXcf&, float, Eigen::VectorXcf&);
+    void  FloatMatrixLPF(Eigen::VectorXf&, Eigen::VectorXf&, float, Eigen::VectorXcf&);
+    void  FloatLPF(float&, float&, float, float&);
     // Private variables
-    bool              firstSweep;
-    float             sweepAlpha;
-    float             phaseWeightsAlpha;
-    float             peakLocAlpha;
-    float             envAlpha;
-    int               maxHistory;
-    Eigen::VectorXcf  lastSweep;
-    Eigen::VectorXcf  lastEnv;
-    float             lastPeakLoc;
-    Eigen::VectorXf   lastPhaseWeights;
+    bool                firstSweep;
+    bool                secondSweep;
+    float               sweepAlpha;
+    float               phaseWeightsAlpha;
+    float               peakLocAlpha;
+    float               envAlpha;
+    int                 maxHistory;
+    Eigen::VectorXcf    lastSweep;
+    Eigen::VectorXf     lastEnv;
+    float               lastPeakLoc;
+    Eigen::VectorXf     lastPhaseWeights;
+    std::vector<float>  breathHistory;
 };
 
 #endif
