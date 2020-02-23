@@ -1,7 +1,7 @@
 #include "BreathingProcessor.hpp"
 
 #define DEBUG
-#define INIT_MAX_HISTORY
+#define MAX_HISTORY 500
 
 // Public functions
 BreathingProcessor::BreathingProcessor() :
@@ -10,60 +10,62 @@ BreathingProcessor::BreathingProcessor() :
   phaseWeightsAlpha(0.9),
   peakLocAlpha(0.95),
   envAlpha(0.95),
-  maxHistory(INIT_MAX_HISTORY),
-  lastLPSweep(INIT_MAX_HISTORY)
+  maxHistory(MAX_HISTORY),
+  lastSweep(MAX_HISTORY)
 {
   // intentionally blank
 }
 
 bool  BreathingProcessor::Process(std::vector<float> sweep, ProcessedFrame& outFrame){
+  
   return true;
 }
 
 // Setters and Getters
 void  BreathingProcessor::SetSweepAlpha(float a){
-  
+  if (a < 1 && a > 0) sweepAlpha = a;
 }
 
 float BreathingProcessor::GetSweepAlpha(){
-  return 0.0;
+  return sweepAlpha;
 }
 
 void  BreathingProcessor::SetPhaseWeightsAlpha(float a){
-  
+  if (a < 1 && a > 0) phaseWeightsAlpha = a;
 }
 
 float BreathingProcessor::GetPhaseWeightsAlpha(){
-  return 0.0;
+  return phaseWeightsAlpha;
 }
 
 void  BreathingProcessor::SetPeakLocAlpha(float a){
-  
+  if (a < 1 && a > 0) peakLocAlpha = a;
 }
 
 float BreathingProcessor::GetPeakLocAlpha(){
-  return 0.0;
+  return peakLocAlpha;
 }
 
 void  BreathingProcessor::SetEnvAlpha(float a){
-  
+  if (a < 1 && a > 0) envAlpha = a;
+
 }
 
 float BreathingProcessor::GetEnvAlpha(){
-  return 0.0;
+  return envAlpha;
 }
 
 // Private functions
-void  BreathingProcessor::ComplexMatrixLPF(Eigen::VectorXcf& mat, float alpha){
-  
+void  BreathingProcessor::ComplexMatrixLPF(Eigen::VectorXcf& curr, Eigen::VectorXcf& prev, float alpha){
+  curr = alpha * prev + (1 - alpha) * curr;
 }
 
-void  BreathingProcessor::FloatMatrixLPF(Eigen::VectorXf& mat, float alpha){
-  
+void  BreathingProcessor::FloatMatrixLPF(Eigen::VectorXf& curr, Eigen::VectorXf& prev, float alpha){
+  curr = alpha * prev + (1 - alpha) * curr;
 }
 
-void  BreathingProcessor::FloatLPF(float& num, float alpha){
-  
+void  BreathingProcessor::FloatLPF(float& curr, float& prev, float alpha){
+  curr = alpha * prev + (1 - alpha) * curr;
 }
 
 #ifdef DEBUG

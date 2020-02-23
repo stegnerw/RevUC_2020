@@ -21,15 +21,12 @@ class BreathingProcessor {
     float GetPeakLocAlpha();
     void  SetEnvAlpha(float);
     float GetEnvAlpha();
-    void  SetMaxHistory(int);
-    int   GetMaxHistory();
-    
 
   private:
     // Private functions
-    void  ComplexMatrixLPF(Eigen::VectorXcf&, float);
-    void  FloatMatrixLPF(Eigen::VectorXf&, float);
-    void  FloatLPF(float&, float);
+    void  ComplexMatrixLPF(Eigen::VectorXcf&, Eigen::VectorXcf&, float);
+    void  FloatMatrixLPF(Eigen::VectorXf&, Eigen::VectorXf&, float);
+    void  FloatLPF(float&, float&, float);
     // Private variables
     bool              firstSweep;
     float             sweepAlpha;
@@ -37,7 +34,10 @@ class BreathingProcessor {
     float             peakLocAlpha;
     float             envAlpha;
     int               maxHistory;
-    Eigen::VectorXcf  lastLPSweep;
+    Eigen::VectorXcf  lastSweep;
+    Eigen::VectorXcf  lastEnv;
+    float             lastPeakLoc;
+    Eigen::VectorXf   lastPhaseWeights;
 };
 
 #endif
