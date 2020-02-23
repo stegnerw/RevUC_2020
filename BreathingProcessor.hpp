@@ -7,10 +7,10 @@
 #include "lib/eigen/Eigen/Eigen"
 #include "ProcessedFrame.hpp"
 
-class BreathingProcess {
+class BreathingProcessor {
   public:
     // Public functions
-    BreathingProcess();
+    BreathingProcessor();
     bool  Process(std::vector<float>, ProcessedFrame&);
     // Setters and Getters
     void  SetSweepAlpha(float);
@@ -19,8 +19,11 @@ class BreathingProcess {
     float GetPhaseWeightsAlpha();
     void  SetPeakLocAlpha(float);
     float GetPeakLocAlpha();
-    void  SetEnvAlpha();
+    void  SetEnvAlpha(float);
     float GetEnvAlpha();
+    void  SetMaxHistory(int);
+    int   GetMaxHistory();
+    
 
   private:
     // Private functions
@@ -30,9 +33,10 @@ class BreathingProcess {
     // Private variables
     bool              firstSweep;
     float             sweepAlpha;
-    float             phaseWeightsAplha;
+    float             phaseWeightsAlpha;
     float             peakLocAlpha;
     float             envAlpha;
+    int               maxHistory;
     Eigen::VectorXcf  lastLPSweep;
 };
 
