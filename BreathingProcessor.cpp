@@ -23,110 +23,86 @@ BreathingProcessor::BreathingProcessor(int sweepLength) :
   // intentionally blank
 }
 
-bool  BreathingProcessor::Process(Eigen::VectorXcf sweep, ProcessedFrame& outFrame){
+bool  BreathingProcessor::Process(std::vector<std::complex<float>> sweep, ProcessedFrame& outFrame){
   if (firstSweep) {
     lastSweep   = sweep;
-    lastEnv     = lastSweep.array().abs();
-    Eigen::VectorXf::Index max_idx;
-    lastEnv.maxCoeff(&max_idx);
-    lastPeakLoc = (float)max_idx;
+    ComplexVectorAbs(lastSweep, lastEnv);
+    lastPeakLoc = (float)std::distance(lastEnv.begin(), std::max_element(lastEnv.begin(), lastEnv.end()));
     firstSweep = false;
     return false;
   }
 
-  sweep = sweepAlpha * lastSweep + (1 - sweepAlpha) * sweep;
-  Eigen::VectorXf env = sweep.array().abs();
-  lastEnv = envAlpha * lastEnv + (1 - envAlpha) * env;
-  Eigen::VectorXf::Index max_idx;
-  lastEnv.maxCoeff(&max_idx);
-  float peakLoc = (float)max_idx;
+  sweep = ComplexVecLPF(sweep, lastSweep, sweepAlpha);
+  std::vector<float> env;
+  ComplexVectorAbs(sweep, env);
+  lastEnv = FloatVecLPF(env, lastEnv, envAlpha);
+  float peakLoc = (float)std::distance(lastEnv.begin(), std::max_element(lastEnv.begin(), lastEnv.end()));
   lastPeakLoc = peakLocAlpha * lastPeakLoc + (1 - peakLocAlpha) * peakLoc;
   int peakLocInt = (int)(lastPeakLoc + 0.5);
+  int peakMin = std::max(0, peakLocInt-50);
+  int peakMax = std::min(peakLocInt+50, sweep.size()-1);
+  
+  std::complex<float> peak = std::accumulate(sweep.begin()+peakMin, sweep.begin()+peakMax, 0.0) / sweep.size();
 
-  Eigen::VectorXcf peakSlice = 
-      sweep(Eigen::seq(std::max(0, peakLocInt-50),
-      std::min(peakLocInt+50, (int)sweep.size()-1)));
-  std::complex<float> peak = peakSlice.mean();
+  std::vector<std::complex<float>> delta();
+  for (std::size_t i = 0; i < sweep.size(); i++) {
+    delta[i] = sweep[i] * lastSweep[i];
+  }
 
-  Eigen::VectorXcf lastSweepAdjoint = lastSweep.conjugate();
-  std::cout << sweep << '\n';
-  std::cout << lastSweepAdjoint << '\n';
-  Eigen::VectorXcf delta = sweep * lastSweepAdjoint;
-
-  Eigen::VectorXf phaseWeights = delta.imag();
+  std::vector<float> phaseWeights;
+  for (std::size_t i = 0; i < delta.size(); i++)
+    phaseWeights[i] = delta[i].imag();
   if (secondSweep) {
     lastPhaseWeights = phaseWeights;
     secondSweep = false;
   } else {
-    lastPhaseWeights = phaseWeightsAlpha * lastPhaseWeights +  (1 - phaseWeightsAlpha) * phaseWeights;
+    lastPhaseWeights = FloatVecLPF(phaseWeights, lastPhaseWeights, phaseWeightsAlpha);
   }
-  Eigen::VectorXf absWeights = lastPhaseWeights.array().abs();
-  Eigen::VectorXf weights = absWeights * env;
-  Eigen::VectorXf deltaAngle(delta.size());
-  for (int i = 0; i < delta.size(); i++) {
-    deltaAngle[i] = atan2(delta[i].imag(), delta[i].real());
-  }
-  std::cout << weights << '\n';
-  std::cout << deltaAngle << '\n';
-  //Eigen::VectorXf deltaDist = weights.dot(deltaAngle);
-  //deltaDist *= 2.5/ (2.0 * M_PI * (weights).sum());
 
 
   return true;
 }
 
-// Setters and Getters
-void  BreathingProcessor::SetSweepAlpha(float a){
-  if (a < 1 && a > 0) sweepAlpha = a;
+void BreathingProcessor::ComplexVectorAbs(std::vector<std::complex<float>> orig, std::vector<float>& abs){
+  for (std::size_t i = 0; i < orig.size(); i++) {
+    abs[i] = sqrt(orig[i].real()*orig[i].real() + orig[i].imag()*orig[i].imag()) ;
+  }
 }
 
-float BreathingProcessor::GetSweepAlpha(){
-  return sweepAlpha;
+std::vector<std::complex<float>> ComplexVecLPF(std::vector<std::complex<float>> old_v, std::vector<std::complex<float>> new_v, float alpha) {
+  std::vector<std::complex<float>> filtered;
+  for (std::size_t i = 0; i < new_v.size(); i++) {
+    filtered[i] = alpha * old_v[i] + (1-alpha) * new_v[i];
+  }
+  return filtered;
 }
 
-void  BreathingProcessor::SetPhaseWeightsAlpha(float a){
-  if (a < 1 && a > 0) phaseWeightsAlpha = a;
-}
-
-float BreathingProcessor::GetPhaseWeightsAlpha(){
-  return phaseWeightsAlpha;
-}
-
-void  BreathingProcessor::SetPeakLocAlpha(float a){
-  if (a < 1 && a > 0) peakLocAlpha = a;
-}
-
-float BreathingProcessor::GetPeakLocAlpha(){
-  return peakLocAlpha;
-}
-
-void  BreathingProcessor::SetEnvAlpha(float a){
-  if (a < 1 && a > 0) envAlpha = a;
-
-}
-
-float BreathingProcessor::GetEnvAlpha(){
-  return envAlpha;
+std::vector<float> FloatVecLPF(std::vector<float> old_v, std::vector<float> new_v, float alpha) {
+  std::vector<float> filtered;
+  for (std::size_t i = 0; i < new_v.size(); i++) {
+    filtered[i] = alpha * old_v[i] + (1-alpha) * new_v[i];
+  }
+  return filtered;
 }
 
 #ifdef DEBUG
 int main() {
   int sweep_len = 5;
-  Eigen::VectorXcf sweep(sweep_len);
-  sweep << std::complex<float>(10,0),
-           std::complex<float>(11,1),
-           std::complex<float>(12,2),
-           std::complex<float>(13,3),
-           std::complex<float>(14,4);
+  std::vector<std::complex<float>> sweep = 
+    {std::complex<float>(10,0),
+     std::complex<float>(11,1),
+     std::complex<float>(12,2),
+     std::complex<float>(13,3),
+     std::complex<float>(14,4)};
   ProcessedFrame frame;
   BreathingProcessor bp(sweep_len);
   bp.Process(sweep, frame);
-  Eigen::VectorXcf sweep2(sweep_len);
-  sweep2 << std::complex<float>(10,10),
-           std::complex<float>(11,11),
-           std::complex<float>(12,12),
-           std::complex<float>(13,13),
-           std::complex<float>(14,14);
+  std::vector<std::complex<float>> sweep2 =
+    {std::complex<float>(10,10),
+     std::complex<float>(11,11),
+     std::complex<float>(12,12),
+     std::complex<float>(13,13),
+     std::complex<float>(14,14)};
   ProcessedFrame frame2;
   bp.Process(sweep2, frame2);
   return 0;

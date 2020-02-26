@@ -4,42 +4,32 @@
 #include <iostream>
 #include <vector>
 #include <complex>
-#include "lib/eigen/Eigen/Eigen"
 #include "ProcessedFrame.hpp"
 
 class BreathingProcessor {
   public:
     // Public functions
     BreathingProcessor(int);
-    bool  Process(Eigen::VectorXcf, ProcessedFrame&);
-    // Setters and Getters
-    void  SetSweepAlpha(float);
-    float GetSweepAlpha();
-    void  SetPhaseWeightsAlpha(float);
-    float GetPhaseWeightsAlpha();
-    void  SetPeakLocAlpha(float);
-    float GetPeakLocAlpha();
-    void  SetEnvAlpha(float);
-    float GetEnvAlpha();
+    bool  Process(std::vector<std::complex<float>>, ProcessedFrame&);
 
   private:
-    // Private functions
-    void  ComplexMatrixLPF(Eigen::VectorXcf&, Eigen::VectorXcf&, float, Eigen::VectorXcf&);
-    void  FloatMatrixLPF(Eigen::VectorXf&, Eigen::VectorXf&, float, Eigen::VectorXcf&);
-    void  FloatLPF(float&, float&, float, float&);
+    // Public functions
+    void ComplexVectorAbs(std::vector<std::complex<float>>, std::vector<float>&);
+    std::vector<std::complex<float>> ComplexVecLPF(std::vector<std::complex<float>>, std::vector<std::complex<float>>, float);
+    std::vector<float> FloatVecLPF(std::vector<float>, std::vector<float>, float);
     // Private variables
-    bool                firstSweep;
-    bool                secondSweep;
-    float               sweepAlpha;
-    float               phaseWeightsAlpha;
-    float               peakLocAlpha;
-    float               envAlpha;
-    int                 maxHistory;
-    Eigen::VectorXcf    lastSweep;
-    Eigen::VectorXf     lastEnv;
-    float               lastPeakLoc;
-    Eigen::VectorXf     lastPhaseWeights;
-    std::vector<float>  breathHistory;
+    bool                              firstSweep;
+    bool                              secondSweep;
+    float                             sweepAlpha;
+    float                             phaseWeightsAlpha;
+    float                             peakLocAlpha;
+    float                             envAlpha;
+    int                               maxHistory;
+    std::vector<std::complex<float>>  lastSweep;
+    std::vector<float>                lastEnv;
+    float                             lastPeakLoc;
+    std::vector<float>                lastPhaseWeights;
+    std::vector<float>                breathHistory;
 };
 
 #endif
